@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "types": ["naive-ui/volar"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
