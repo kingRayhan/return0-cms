@@ -28,11 +28,19 @@ export const adminRoutes = [
         },
       },
       {
-        path: "/update/:id",
+        path: "update/:id",
         name: "courses.update",
         component: () => import("@/pages/courses/update.vue"),
         meta: {
           menuLabel: "Course List",
+          hiddenFromMenu: true,
+        },
+      },
+      {
+        path: "builder/:id",
+        name: "courses.builder",
+        component: () => import("@/pages/courses/course-builder.vue"),
+        meta: {
           hiddenFromMenu: true,
         },
       },

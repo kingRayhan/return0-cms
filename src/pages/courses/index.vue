@@ -1,18 +1,12 @@
 <template>
-  <n-page-header class="mb-4">
-    <template #title> Courses </template>
-    <template #extra>
-      <n-space>
-        <n-button @click="refetch">Refetch</n-button>
-        <n-button type="primary" @click="showDrawer = true">New</n-button>
-      </n-space>
+  <page-header title="Courses">
+    <template #right-side>
+      <n-button @click="refetch">Refetch</n-button>
+      <n-button type="primary" @click="showDrawer = true"> New </n-button>
     </template>
-  </n-page-header>
-  <pre>
-    {{ courses }}
-  </pre>
-  <n-data-table :columns="columns" :data="courses" :loading="loading_query" />
+  </page-header>
 
+  <n-data-table :columns="columns" :data="courses" :loading="loading_query" />
   <n-drawer v-model:show="showDrawer" :width="502">
     <n-drawer-content title="Create new course" closable>
       <n-form
@@ -101,9 +95,17 @@
 import api from "@/lib/api";
 import { h, reactive, ref } from "vue";
 import { useMutation, useQuery } from "vue-query";
-import { useRoute } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 import { useTitle } from "@vueuse/core";
-import { NButton, NButtonGroup, NImage, useMessage } from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NImage,
+  NSwitch,
+  NTag,
+  useMessage,
+} from "naive-ui";
+import PageHeader from "@/components/page-header.vue";
 const message = useMessage();
 const { meta } = useRoute();
 
@@ -112,6 +114,17 @@ useTitle(meta.pageTitle);
 const formRef = ref(null);
 const showDrawer = ref(false);
 const errors = ref([]);
+
+// Load courses
+const {
+  isFetching: loading_query,
+  data: courses,
+  refetch,
+} = useQuery("courses", async () => {
+  const { ok, data } = await api.get("/courses");
+  if (!ok) message.error("Failed to load courses");
+  return data;
+});
 
 const columns = [
   {
@@ -131,13 +144,24 @@ const columns = [
   },
   {
     title: "Type",
-    key: "type",
+    render(row) {
+      return h(
+        NTag,
+        { type: row.type === "FREE" ? "error" : "success" },
+        row.type
+      );
+    },
   },
   {
     title: "Published",
-    key: "isPublished",
     render(row) {
-      return row.isPublished ? "Published" : "Draft";
+      return h(NSwitch, {
+        "v-model:value": row.isPublished,
+        "onUpdate:value": (value) => {
+          // course.isPublished = value;
+          console.log(value);
+        },
+      });
     },
   },
   {
@@ -146,17 +170,38 @@ const columns = [
       return h(NButtonGroup, [
         h(
           NButton,
-          {
-            attrType: "link",
-            attrHref: `/courses/${row.id}/edit`,
-          },
-          "Edit"
+          { type: "info" },
+          h(
+            RouterLink,
+            { to: { name: "courses.update", params: { id: row.id } } },
+            "Course Detail"
+          )
+        ),
+        h(
+          NButton,
+          { type: "success" },
+          h(
+            RouterLink,
+            { to: { name: "courses.builder", params: { id: row.id } } },
+            "Builder"
+          )
         ),
         h(
           NButton,
           {
-            attrType: "link",
-            attrHref: `/courses/${row.id}/delete`,
+            type: "error",
+            "on-click": () => {
+              if (confirm("Are you sure to delete this course?")) {
+                api.delete(`/courses/${row.id}`).then(({ ok }) => {
+                  if (ok) {
+                    refetch.value();
+                    message.success("Course deleted");
+                  } else {
+                    message.error("Failed to delete course");
+                  }
+                });
+              }
+            },
           },
           "Delete"
         ),
@@ -164,17 +209,6 @@ const columns = [
     },
   },
 ];
-
-// Load courses
-const {
-  isFetching: loading_query,
-  data: courses,
-  refetch,
-} = useQuery("courses", async () => {
-  const { ok, data } = await api.get("/courses");
-  if (!ok) message.error("Failed to load courses");
-  return data;
-});
 
 const form = reactive({
   title: "",
@@ -222,14 +256,14 @@ const { mutateAsync, isLoading: isMutateLoading } = useMutation(
       message.error("Failed to create course");
       return;
     }
+    refetch.value();
     message.success("Successfully created course");
-
-    refetch();
   }
 );
 
 const handleSubmit = async () => {
   await formRef.value.validate();
   await mutateAsync(form);
+  refetch.value();
 };
 </script>
