@@ -9,10 +9,6 @@
     </template>
   </n-page-header>
 
-  <pre>
-    {{ courses }}
-  </pre>
-
   <n-data-table :columns="columns" :data="data" />
 
   <n-drawer v-model:show="showDrawer" :width="502">
@@ -34,10 +30,6 @@
           <n-input :loading="isMutateLoading" v-model:value="form.title" />
         </n-form-item>
 
-        <n-form-item label="Order" path="order">
-          <n-input-number v-model:value="form.order" :min="0" clearable />
-        </n-form-item>
-
         <n-form-item label="Type" path="type">
           <n-select
             v-model:value="form.type"
@@ -46,6 +38,10 @@
               { label: 'Paid', value: 'PAID' },
             ]"
           />
+        </n-form-item>
+
+        <n-form-item label="Order" path="order">
+          <n-input-number v-model:value="form.order" :min="0" clearable />
         </n-form-item>
 
         <n-form-item label="Price" path="price">
@@ -94,7 +90,13 @@
 <script setup>
 import api from "@/lib/api";
 import { reactive, ref } from "vue";
-import { useQuery, useMutation } from "vue-query";
+import { useMutation, useQuery } from "vue-query";
+import { useRoute } from "vue-router";
+import { useTitle } from "@vueuse/core";
+
+const { meta } = useRoute();
+
+useTitle(meta.pageTitle);
 
 const formRef = ref(null);
 const showDrawer = ref(false);
@@ -113,56 +115,7 @@ const columns = [
     key: "actions",
   },
 ];
-const data = [
-  {
-    name: "Course 1",
-    thumbnail: "https://via.placeholder.com/150",
-    actions: [
-      {
-        label: "Edit",
-        icon: "edit",
-        color: "primary",
-      },
-      {
-        label: "Delete",
-        icon: "delete",
-        color: "danger",
-      },
-    ],
-  },
-  {
-    name: "Course 2",
-    thumbnail: "https://via.placeholder.com/150",
-    actions: [
-      {
-        label: "Edit",
-        icon: "edit",
-        color: "primary",
-      },
-      {
-        label: "Delete",
-        icon: "delete",
-        color: "danger",
-      },
-    ],
-  },
-  {
-    name: "Course 3",
-    thumbnail: "https://via.placeholder.com/150",
-    actions: [
-      {
-        label: "Edit",
-        icon: "edit",
-        color: "primary",
-      },
-      {
-        label: "Delete",
-        icon: "delete",
-        color: "danger",
-      },
-    ],
-  },
-];
+const data = [];
 
 const form = reactive({
   title: "",

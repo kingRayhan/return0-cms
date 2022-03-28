@@ -7,26 +7,37 @@ export const adminRoutes = [
     path: "",
     name: "admin.index",
     meta: { menuLabel: "Home", menuIcon: HomeOutline },
-    component: import("@/pages/admin/index.vue"),
+    component: () => import("@/pages/admin/index.vue"),
   },
   {
     path: "courses",
-    name: "courses.index",
-    meta: { menuLabel: "Courses", menuIcon: BookOutline },
-    component: () => import("@/pages/courses/index.vue"),
-    // children: [
-    //   {
-    //     path: "",
-    //     meta: { menuLabel: "Course List", menuIcon: BookOutline },
-    //     component: () => import("@/pages/courses/index.vue"),
-    //   },
-    //   {
-    //     path: "create",
-    //     name: "courses.create",
-    //     meta: { menuLabel: "New Course", menuIcon: BookOutline },
-    //     component: () => import("@/pages/courses/index.vue"),
-    //   },
-    // ],
+    meta: {
+      menuLabel: "Course Managet",
+      menuIcon: BookOutline,
+      pageTitle: "Course",
+    },
+    component: () => import("@/layouts/blank.vue"),
+    children: [
+      {
+        name: "courses.index",
+        path: "",
+        component: () => import("@/pages/courses/index.vue"),
+        meta: {
+          menuLabel: "Course List",
+          pageTitle: "Course",
+        },
+      },
+      {
+        path: "/update/:id",
+        name: "courses.update",
+        component: () => import("@/pages/courses/update.vue"),
+        meta: {
+          menuLabel: "Course List",
+          pageTitle: "Course",
+          hiddenFromMenu: true,
+        },
+      },
+    ],
   },
 ];
 

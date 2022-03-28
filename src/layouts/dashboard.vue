@@ -18,9 +18,6 @@
           :collapsed-width="64"
           :collapsed-icon-size="22"
           :options="menuOptions"
-          :render-label="renderMenuLabel"
-          :render-icon="renderMenuIcon"
-          :expand-icon="expandIcon"
         />
       </n-layout-sider>
       <n-layout class="bg-slate-50">
@@ -46,17 +43,30 @@ function renderIcon(icon) {
 }
 
 const menuOptions = adminRoutes.map((route) => {
-  const { name, meta } = route;
+  const { name, meta, children } = route;
   const { menuIcon, menuLabel } = meta;
+
   return {
     key: name,
-    label: () =>
-      h(
-        RouterLink,
-        { to: { name }, activeClass: "text-red-500" },
-        { default: () => menuLabel }
-      ),
+    label: children
+      ? menuLabel
+      : () => h(RouterLink, { to: { name } }, { default: () => menuLabel }),
     icon: renderIcon(menuIcon),
+    children: children
+      ? children
+          .filter((menu) => !menu?.meta?.hiddenFromMenu)
+          .map((child) => {
+            return {
+              key: child.name,
+              label: () =>
+                h(
+                  RouterLink,
+                  { to: { name: child.name } },
+                  { default: () => child?.meta?.menuLabel }
+                ),
+            };
+          })
+      : undefined,
   };
 });
 </script>
