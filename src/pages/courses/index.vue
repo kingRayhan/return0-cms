@@ -8,7 +8,9 @@
       </n-space>
     </template>
   </n-page-header>
-
+  <pre>
+    {{ courses }}
+  </pre>
   <n-data-table :columns="columns" :data="courses" :loading="loading_query" />
 
   <n-drawer v-model:show="showDrawer" :width="502">
@@ -97,11 +99,11 @@
 
 <script setup>
 import api from "@/lib/api";
-import { reactive, ref } from "vue";
+import { h, reactive, ref } from "vue";
 import { useMutation, useQuery } from "vue-query";
 import { useRoute } from "vue-router";
 import { useTitle } from "@vueuse/core";
-import { useMessage } from "naive-ui";
+import { NButton, NButtonGroup, NImage, useMessage } from "naive-ui";
 const message = useMessage();
 const { meta } = useRoute();
 
@@ -112,6 +114,17 @@ const showDrawer = ref(false);
 const errors = ref([]);
 
 const columns = [
+  {
+    title: "Thumbnail",
+    key: "thumbnail",
+    width: "150px",
+    render(row) {
+      return h(NImage, {
+        src: row.thumbnail,
+        width: "100",
+      });
+    },
+  },
   {
     title: "Name",
     key: "title",
@@ -125,6 +138,29 @@ const columns = [
     key: "isPublished",
     render(row) {
       return row.isPublished ? "Published" : "Draft";
+    },
+  },
+  {
+    title: "Action",
+    render(row) {
+      return h(NButtonGroup, [
+        h(
+          NButton,
+          {
+            attrType: "link",
+            attrHref: `/courses/${row.id}/edit`,
+          },
+          "Edit"
+        ),
+        h(
+          NButton,
+          {
+            attrType: "link",
+            attrHref: `/courses/${row.id}/delete`,
+          },
+          "Delete"
+        ),
+      ]);
     },
   },
 ];
