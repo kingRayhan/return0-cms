@@ -3,13 +3,13 @@
     <template #title> Courses </template>
     <template #extra>
       <n-space>
-        <n-button>Refetch</n-button>
+        <n-button @click="refetch">Refetch</n-button>
         <n-button type="primary" @click="showDrawer = true">New</n-button>
       </n-space>
     </template>
   </n-page-header>
 
-  <n-data-table :columns="columns" :data="data" />
+  <n-data-table :columns="columns" :data="courses" :loading="loading_query" />
 
   <n-drawer v-model:show="showDrawer" :width="502">
     <n-drawer-content title="Create new course" closable>
@@ -22,9 +22,9 @@
         :rules="rules"
         @submit.prevent="handleSubmit"
       >
-        <pre>
-          {{ form }}
-        </pre>
+        <n-alert v-if="errors.length" title="Invalid Input" type="error">
+          {{ errors.join("\n") }}
+        </n-alert>
 
         <n-form-item label="Title" path="title">
           <n-input :loading="isMutateLoading" v-model:value="form.title" />
@@ -69,6 +69,14 @@
           </n-switch>
         </n-form-item>
 
+        <n-form-item label="Thumbnail" path="thumbnail">
+          <n-input
+            v-model:value="form.thumbnail"
+            :input-props="{ type: 'url' }"
+            placeholder="Thumbnail Url"
+          />
+        </n-form-item>
+
         <n-form-item label="Author Id" path="author">
           <n-input
             placeholder="Input Name"
@@ -93,29 +101,44 @@ import { reactive, ref } from "vue";
 import { useMutation, useQuery } from "vue-query";
 import { useRoute } from "vue-router";
 import { useTitle } from "@vueuse/core";
-
+import { useMessage } from "naive-ui";
+const message = useMessage();
 const { meta } = useRoute();
 
 useTitle(meta.pageTitle);
 
 const formRef = ref(null);
 const showDrawer = ref(false);
+const errors = ref([]);
 
 const columns = [
   {
     title: "Name",
-    key: "name",
+    key: "title",
   },
   {
-    title: "Thumbnail",
-    key: "thumbnail",
+    title: "Type",
+    key: "type",
   },
   {
-    title: "Actions",
-    key: "actions",
+    title: "Published",
+    key: "isPublished",
+    render(row) {
+      return row.isPublished ? "Published" : "Draft";
+    },
   },
 ];
-const data = [];
+
+// Load courses
+const {
+  isFetching: loading_query,
+  data: courses,
+  refetch,
+} = useQuery("courses", async () => {
+  const { ok, data } = await api.get("/courses");
+  if (!ok) message.error("Failed to load courses");
+  return data;
+});
 
 const form = reactive({
   title: "",
@@ -145,11 +168,30 @@ const rules = {
       }
     },
   },
+  thumbnail: {
+    trigger: "input", // input, change, blur
+    validator(_, value) {
+      if (!value.startsWith("http")) {
+        return new Error("Thumbnail url must start with http/https");
+      }
+    },
+  },
 };
 
-const { mutateAsync, isLoading: isMutateLoading } = useMutation((data) =>
-  api.post("/courses", data)
+const { mutateAsync, isLoading: isMutateLoading } = useMutation(
+  async (payload) => {
+    const { ok, originalError } = await api.post("/courses", payload);
+    if (!ok) {
+      errors.value = originalError?.response?.data?.message;
+      message.error("Failed to create course");
+      return;
+    }
+    message.success("Successfully created course");
+
+    refetch();
+  }
 );
+
 const handleSubmit = async () => {
   await formRef.value.validate();
   await mutateAsync(form);

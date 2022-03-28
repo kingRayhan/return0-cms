@@ -11,12 +11,12 @@ export const adminRoutes = [
   },
   {
     path: "courses",
+    component: () => import("@/layouts/blank.vue"),
     meta: {
-      menuLabel: "Course Managet",
+      menuLabel: "Course Manager",
       menuIcon: BookOutline,
       pageTitle: "Course",
     },
-    component: () => import("@/layouts/blank.vue"),
     children: [
       {
         name: "courses.index",
@@ -33,7 +33,6 @@ export const adminRoutes = [
         component: () => import("@/pages/courses/update.vue"),
         meta: {
           menuLabel: "Course List",
-          pageTitle: "Course",
           hiddenFromMenu: true,
         },
       },
