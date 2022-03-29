@@ -51,9 +51,10 @@ export const adminRoutes = [
 const routes = [
   {
     path: "/",
-    component: () => import("@/pages/index.vue"),
-    name: "home",
-    meta: { label: "Home" },
+    redirect: "/admin",
+    // component: () => import("@/pages/index.vue"),
+    // name: "home",
+    // meta: { label: "Home" },
   },
   {
     path: "/admin",

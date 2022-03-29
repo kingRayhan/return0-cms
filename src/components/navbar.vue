@@ -1,14 +1,9 @@
 <template>
   <div class="flex items-center justify-end p-3 border-b">
     <n-dropdown :options="options" trigger="click">
-      <div class="flex gap-2 items-center cursor-pointer">
+      <div class="flex items-center gap-2 cursor-pointer">
         <p class="text-base uppercase">Rayhan</p>
-        <n-avatar
-          round
-          size="small"
-          src="empty.png"
-          fallback-src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
-        />
+        <n-avatar round size="small" class="!bg-emerald-500">R</n-avatar>
       </div>
     </n-dropdown>
   </div>

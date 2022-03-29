@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.typography {
+  @apply prose prose-h1:text-2xl max-w-none;
+}

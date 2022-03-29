@@ -3,7 +3,7 @@
     <div class="max-w-5xl mx-auto">
       <PageHeader title="Update Course">
         <template #right-side>
-          <n-button type="primary" @click="refetch" :loading="isLoading">
+          <n-button type="primary" @click="refetch" :loading="courseFetching">
             Refetch
           </n-button>
 
@@ -31,6 +31,8 @@
                 <n-input v-model:value="value.description" type="textarea" />
               </n-form-item>
             </n-form>
+
+            <LessionBuilder />
           </div>
         </template>
       </n-dynamic-input>
@@ -40,12 +42,12 @@
 
 <script setup>
 import { ref, watch } from "vue";
-import _ from "underscore";
 import PageHeader from "@/components/page-header.vue";
 import { useMutation, useQuery } from "vue-query";
 import { useMessage } from "naive-ui";
 import api from "@/lib/api";
 import { useRoute } from "vue-router";
+import LessionBuilder from "@/components/lession-builder.vue";
 const route = useRoute();
 
 const paramId = ref(route.params.id);
