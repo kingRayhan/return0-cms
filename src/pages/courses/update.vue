@@ -172,7 +172,8 @@ watch(
   (fetching) => {
     if (!fetching) {
       course.value = loadedCourse.value;
-      course.value.author = loadedCourse.value.author.id;
+      if (loadedCourse.value.author)
+        course.value.author = loadedCourse.value.author.id;
     }
   }
 );
