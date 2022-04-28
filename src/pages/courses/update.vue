@@ -123,7 +123,7 @@ const {
   isError,
   refetch,
 } = useQuery(["course", paramId], async ({ queryKey }) => {
-  const { ok, data } = await api.get(`/courses/${queryKey[1]}`);
+  const { ok, data } = await api.get(`/cms/courses/${queryKey[1]}`);
   if (!ok) message.error("Failed to load course");
   return data;
 });
@@ -152,9 +152,9 @@ const rules = {
     validator(rule, value) {
       if (!value) return new Error("Please input the author of the course");
 
-      if (value != "623f28b75592eca6e5a552d8") {
-        return new Error("Author id is not 623f28b75592eca6e5a552d8");
-      }
+      // if (value != "623f28b75592eca6e5a552d8") {
+      //   return new Error("Author id is not 623f28b75592eca6e5a552d8");
+      // }
     },
   },
   thumbnail: {
@@ -181,7 +181,7 @@ watch(
 const { mutateAsync, isLoading: isCourseMutating } = useMutation(
   async (payload) => {
     const { ok, originalError } = await api.patch(
-      `/courses/${paramId.value}`,
+      `/cms/courses/${paramId.value}`,
       payload
     );
     if (!ok) {

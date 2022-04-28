@@ -156,15 +156,9 @@ const columns = [
     title: "Published",
     render(row) {
       return h(
-        NSwitch,
-        {
-          "v-model:value": row.isPublished,
-          "onUpdate:value": (value) => {
-            // course.isPublished = value;
-            console.log(value);
-          },
-        },
-        row.isPublished
+        NTag,
+        { type: !row.isPublished ? "error" : "success" },
+        row.isPublished ? "Published" : "Drafted"
       );
     },
   },
