@@ -65,13 +65,20 @@
           </n-switch>
         </n-form-item>
 
-        <n-form-item label="Thumbnail" path="thumbnail">
-          <n-input
-            v-model:value="course.thumbnail"
-            :input-props="{ type: 'url' }"
-            placeholder="Thumbnail Url"
-          />
-        </n-form-item>
+        <div label="Thumbnail" path="thumbnail" class="flex flex-col mb-4">
+          <div>
+            <n-image
+              v-if="course.thumbnail"
+              :width="500"
+              :src="course.thumbnail"
+            />
+          </div>
+          <div>
+            <n-button @click="openUploadModal">
+              {{ course.thumbnail ? "Replace" : "Upload" }} Thumbnail
+            </n-button>
+          </div>
+        </div>
 
         <n-form-item label="Author Id" path="author">
           <n-input placeholder="Input Name" v-model:value="course.author" />
@@ -122,11 +129,16 @@ const {
   data: loadedCourse,
   isError,
   refetch,
-} = useQuery(["course", paramId], async ({ queryKey }) => {
-  const { ok, data } = await api.get(`/cms/courses/${queryKey[1]}`);
-  if (!ok) message.error("Failed to load course");
-  return data;
-});
+} = useQuery(
+  ["course", paramId],
+  async ({ queryKey }) => {
+    const { ok, data } = await api.get(`/cms/courses/${queryKey[1]}`);
+    if (!ok) message.error("Failed to load course");
+    console.log(data);
+    return data;
+  },
+  { refetchOnWindowFocus: false }
+);
 
 const course = ref({
   title: "",
@@ -135,6 +147,7 @@ const course = ref({
   offer_price: "",
   type: "",
   isPublished: false,
+  thumbnail: "",
   author: "",
   excerpt: "",
   description: "",
@@ -147,15 +160,11 @@ const rules = {
     trigger: "input", // input, change, blur
   },
   author: {
-    trigger: "input", // input, change, blur
-    required: true,
-    validator(rule, value) {
-      if (!value) return new Error("Please input the author of the course");
-
-      // if (value != "623f28b75592eca6e5a552d8") {
-      //   return new Error("Author id is not 623f28b75592eca6e5a552d8");
-      // }
-    },
+    // trigger: "input", // input, change, blur
+    // required: true,
+    // validator(rule, value) {
+    //   if (!value) return new Error("Please input the author of the course");
+    // },
   },
   thumbnail: {
     trigger: "input", // input, change, blur
@@ -192,6 +201,19 @@ const { mutateAsync, isLoading: isCourseMutating } = useMutation(
     message.success("Successfully created course");
   }
 );
+
+const openUploadModal = () => {
+  window.cloudinary
+    .openUploadWidget(
+      { cloud_name: "azkeroffer", upload_preset: "course-assets" },
+      (error, result) => {
+        if (!error && result && result.event === "success") {
+          course.value.thumbnail = result.info.secure_url;
+        }
+      }
+    )
+    .open();
+};
 
 const handleUpdateCourse = async () => {
   await formRef.value.validate();

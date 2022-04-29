@@ -65,13 +65,16 @@
           </n-switch>
         </n-form-item>
 
-        <n-form-item label="Thumbnail" path="thumbnail">
-          <n-input
-            v-model:value="form.thumbnail"
-            :input-props="{ type: 'url' }"
-            placeholder="Thumbnail Url"
-          />
-        </n-form-item>
+        <div label="Thumbnail" path="thumbnail" class="flex flex-col mb-4">
+          <div>
+            <n-image v-if="form.thumbnail" :width="500" :src="form.thumbnail" />
+          </div>
+          <div>
+            <n-button @click="openUploadModal">
+              {{ form.thumbnail ? "Replace" : "Upload" }} Thumbnail
+            </n-button>
+          </div>
+        </div>
 
         <n-form-item label="Author Id" path="author">
           <n-input
@@ -190,7 +193,7 @@ const columns = [
             type: "error",
             "on-click": () => {
               if (confirm("Are you sure to delete this course?")) {
-                api.delete(`/courses/${row.id}`).then(({ ok }) => {
+                api.delete(`/cms/courses/${row.id}`).then(({ ok }) => {
                   if (ok) {
                     refetch.value();
                     message.success("Course deleted");
@@ -237,18 +240,18 @@ const rules = {
     },
   },
   thumbnail: {
-    trigger: "input", // input, change, blur
-    validator(_, value) {
-      if (!value.startsWith("http")) {
-        return new Error("Thumbnail url must start with http/https");
-      }
-    },
+    // trigger: "input", // input, change, blur
+    // validator(_, value) {
+    //   if (!value.startsWith("http")) {
+    //     return new Error("Thumbnail url must start with http/https");
+    //   }
+    // },
   },
 };
 
 const { mutateAsync, isLoading: isMutateLoading } = useMutation(
   async (payload) => {
-    const { ok, originalError } = await api.post("/courses", payload);
+    const { ok, originalError } = await api.post("/cms/courses", payload);
     if (!ok) {
       errors.value = originalError?.response?.data?.message;
       message.error("Failed to create course");
@@ -262,6 +265,29 @@ const { mutateAsync, isLoading: isMutateLoading } = useMutation(
 const handleSubmit = async () => {
   await formRef.value.validate();
   await mutateAsync(form);
+  form.title = "";
+  form.order = 0;
+  form.price = 0;
+  form.offer_price = 0;
+  form.type = "FREE";
+  form.isPublished = false;
+  form.thumbnail = "";
+  form.author = "";
+
   refetch.value();
+};
+
+const openUploadModal = () => {
+  window.cloudinary
+    .openUploadWidget(
+      { cloud_name: "azkeroffer", upload_preset: "course-assets" },
+      (error, result) => {
+        if (!error && result && result.event === "success") {
+          console.log("Done uploading..: ", result.info);
+          form.thumbnail = result.info.secure_url;
+        }
+      }
+    )
+    .open();
 };
 </script>
