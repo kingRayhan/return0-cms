@@ -119,10 +119,13 @@ const onRemoveChapter = (index) => {
 };
 
 const { mutateAsync, isLoading } = useMutation(async () => {
-  const { ok } = await api.post(`/cms/courses/builder/${paramId.value}`, {
-    data: chapters.value.map((chapter, i) => ({ ...chapter, order: i })),
-    deleted_chapter_ids: deleted_chapter_ids.value,
-  });
+  const { ok } = await api.post(
+    `/cms/courses/chapters-builder/${paramId.value}`,
+    {
+      data: chapters.value.map((chapter, i) => ({ ...chapter, order: i })),
+      deleted_chapter_ids: deleted_chapter_ids.value,
+    }
+  );
   if (!ok) {
     // errors.value = originalError?.response?.data?.message;
     message.error("Failed to create chapter");
