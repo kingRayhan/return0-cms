@@ -73,7 +73,7 @@ const {
 } = useQuery(
   ["course", paramId],
   async ({ queryKey }) => {
-    const { ok, data } = await api.get(`/courses/${queryKey[1]}`);
+    const { ok, data } = await api.get(`/cms/courses/${queryKey[1]}`);
     if (!ok) message.error("Failed to load course");
     return data;
   },
@@ -119,9 +119,8 @@ const onRemoveChapter = (index) => {
 };
 
 const { mutateAsync, isLoading } = useMutation(async () => {
-  const { ok } = await api.post(`/chapters/update-chapters`, {
+  const { ok } = await api.post(`/cms/courses/builder/${paramId.value}`, {
     data: chapters.value.map((chapter, i) => ({ ...chapter, order: i })),
-    courseId: paramId.value,
     deleted_chapter_ids: deleted_chapter_ids.value,
   });
   if (!ok) {
