@@ -1,8 +1,9 @@
 <template>
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-lg font-semibold">Lessons</h1>
-    <n-button>Save</n-button>
+    <n-button :loading="isLoading" @click="saveLession">Save</n-button>
   </div>
+
   <n-dynamic-input
     v-model:value="lessons"
     show-sort-button
@@ -10,6 +11,7 @@
     value-placeholder="Description"
     placeholder="Please type here"
     @create="onCreateLesson"
+    @remove="onRemoveLesson"
   >
     <template #default="{ value }">
       <n-modal v-model:show="value.modal">
@@ -24,6 +26,10 @@
 
             <n-form-item label="Published">
               <n-switch v-model:value="value.isPublished" />
+            </n-form-item>
+
+            <n-form-item label="Free preview">
+              <n-switch v-model:value="value.isFreePreview" />
             </n-form-item>
 
             <n-form-item label="Lesson Type">
@@ -114,20 +120,34 @@
       </div>
     </template>
   </n-dynamic-input>
-
-  <pre>{{ lessons }}</pre>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import Editor from "./Editor.vue";
-
-const lessons = ref([]);
+import { useMutation } from "vue-query";
+import { useMessage } from "naive-ui";
+import api from "@/lib/api";
+const props = defineProps({
+  courseId: {
+    type: String,
+    required: true,
+  },
+  lessons: {
+    type: Array,
+    required: true,
+  },
+});
+const lessons = ref(props.lessons || []);
+const remove_index = ref(null);
+const deleted_lesson_ids = ref([]);
+const message = useMessage();
 
 const onCreateLesson = () => {
   return {
     title: "Lesson " + lessons.value.length,
     isPublished: false,
+    isFreePreview: false,
     excerpt: "",
     thumbnail: "",
     type: "VIDEO",
@@ -140,5 +160,43 @@ const onCreateLesson = () => {
     },
     modal: false,
   };
+};
+
+watch(
+  () => lessons.value,
+  (_, oldLessons) => {
+    if (remove_index.value !== null) {
+      const index = remove_index.value;
+      const lesson = oldLessons[index];
+      if (lesson?._id) {
+        deleted_lesson_ids.value.push(lesson._id);
+      }
+      remove_index.value = null;
+    }
+  }
+);
+
+const onRemoveLesson = (index) => {
+  remove_index.value = index;
+};
+
+const { mutateAsync, isLoading } = useMutation(async () => {
+  const { ok } = await api.post(
+    `/cms/courses/lessons-builder/${props.courseId}`,
+    {
+      data: lessons.value.map((lesson, i) => ({ ...lesson, order: i })),
+      deleted_lesson_ids: deleted_lesson_ids.value,
+    }
+  );
+  if (!ok) {
+    // errors.value = originalError?.response?.data?.message;
+    message.error("Failed to create lesson");
+    return;
+  }
+  message.success("Successfully created chapter");
+});
+
+const saveLession = async () => {
+  await mutateAsync();
 };
 </script>

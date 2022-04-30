@@ -31,8 +31,7 @@
                 <n-input v-model:value="value.description" type="textarea" />
               </n-form-item>
             </n-form>
-
-            <LessionBuilder />
+            <LessionBuilder :lessons="value.lessons" :courseId="value._id" />
           </div>
         </template>
       </n-dynamic-input>
